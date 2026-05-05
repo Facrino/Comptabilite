@@ -1,0 +1,80 @@
+{
+  "entities": {
+    "Profile": {
+      "title": "User Profile",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "establishment": { "type": "string" },
+        "parcours": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "email": { "type": "string" }
+      },
+      "required": ["firstName", "lastName", "email"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Accounting journal entry",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string" },
+        "label": { "type": "string" },
+        "lines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "accountCode": { "type": "string" },
+              "accountLabel": { "type": "string" },
+              "debit": { "type": "number" },
+              "credit": { "type": "number" }
+            }
+          }
+        },
+        "userId": { "type": "string" }
+      }
+    },
+    "Backup": {
+      "title": "Data Backup",
+      "description": "A snapshot of user transactions",
+      "type": "object",
+      "properties": {
+        "transactions": { "type": "array" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" }
+      }
+    },
+    "VerificationCode": {
+      "title": "Verification Code",
+      "description": "Temporary 4-digit code for account verification",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "/profiles/{userId}": {
+      "schema": "Profile",
+      "description": "User personal profile data"
+    },
+    "/backups/{userId}": {
+      "schema": "Backup",
+      "description": "Latest backup of transactions for a user"
+    },
+    "/verificationCodes/{userId}": {
+      "schema": "VerificationCode",
+      "description": "Stored verification code for an account"
+    },
+    "/transactions/{txId}": {
+      "schema": "Transaction",
+      "description": "Individual accounting transactions for a user"
+    }
+  }
+}

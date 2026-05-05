@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_dashboard"
+            android:icon="@android:drawable/ic_menu_today"
+            android:title="Tableau de Bord" />
+        <item
+            android:id="@+id/nav_operations"
+            android:icon="@android:drawable/ic_menu_edit"
+            android:title="Journal d'Opérations" />
+        <item
+            android:id="@+id/nav_income"
+            android:icon="@android:drawable/ic_menu_sort_by_size"
+            android:title="Compte de Résultat" />
+        <item
+            android:id="@+id/nav_balance"
+            android:icon="@android:drawable/ic_menu_directions"
+            android:title="Bilan Patrimonial" />
+    </group>
+</menu>
