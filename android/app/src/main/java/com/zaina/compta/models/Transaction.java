@@ -1,4 +1,4 @@
-package com.comptazen.models;
+package com.zaina.compta.models;
 
 import java.util.List;
 

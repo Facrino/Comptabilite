@@ -34,7 +34,7 @@ import { RotateCcw } from 'lucide-react';
 
 export default function Profile() {
   const { user, isLoading, syncProfile } = useAccounting();
-  const [mode, setMode] = useState<'login' | 'register' | 'verify'>('login');
+  const [mode, setMode] = useState<'login' | 'register'>('login');
   
   if (isLoading) {
     return (
@@ -46,41 +46,12 @@ export default function Profile() {
     );
   }
 
-  // If user is logged in but not verified, force verification
-  if (user && !user.profile.verified && mode !== 'verify') {
-    return (
-      <Layout title="Vérification">
-        <VerificationStep 
-          user={user}
-          onSuccess={async () => {
-            await syncProfile({ ...user.profile, verified: true });
-          }}
-          onCancel={async () => {
-             await signOut(auth);
-          }}
-        />
-      </Layout>
-    );
-  }
-
   if (!user) {
-    if (mode === 'verify') {
-      return (
-        <Layout title="Vérification">
-           <div className="flex items-center justify-center py-20">
-            <div className="size-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
-          </div>
-        </Layout>
-      );
-    }
     return (
       <Layout title="Mon compte">
         <AuthFlow 
           mode={mode} 
           setMode={setMode} 
-          onRegisterSuccess={() => {
-            setMode('verify');
-          }}
           syncProfile={syncProfile}
         />
       </Layout>
@@ -94,10 +65,9 @@ export default function Profile() {
   );
 }
 
-function AuthFlow({ mode, setMode, onRegisterSuccess, syncProfile }: { 
+function AuthFlow({ mode, setMode, syncProfile }: { 
   mode: 'login' | 'register', 
   setMode: (m: 'login' | 'register') => void,
-  onRegisterSuccess: () => void,
   syncProfile: (p: any) => Promise<void>
 }) {
   const [showPassword, setShowPassword] = useState(false);
@@ -129,33 +99,18 @@ function AuthFlow({ mode, setMode, onRegisterSuccess, syncProfile }: {
         }
         
         // 1. Create user
-        const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-        const uid = userCredential.user.uid;
+        await createUserWithEmailAndPassword(auth, formData.email, formData.password);
 
-        // 2. Generate 4-digit code
-        const generatedCode = Math.floor(1000 + Math.random() * 9000).toString();
-        
-        // 3. Store the code in Firestore
-        // In a real production app, a Cloud Function would send this email
-        await setDoc(doc(db, 'verificationCodes', uid), {
-          code: generatedCode,
-          userId: uid,
-          createdAt: Timestamp.now()
-        });
-
-        // 4. Create local profile (verified: false)
+        // 2. Create local profile (verified: true)
         await syncProfile({
           firstName: formData.firstName,
           lastName: formData.lastName,
           establishment: formData.establishment,
           parcours: formData.parcours,
           email: formData.email,
-          verified: false,
+          verified: true,
           photoURL: `https://ui-avatars.com/api/?name=${formData.firstName}+${formData.lastName}&background=6366f1&color=fff`
         });
-
-        console.log("CODE DE VERIFICATION ENVOYÉ : ", generatedCode);
-        onRegisterSuccess();
       } else {
         await signInWithEmailAndPassword(auth, formData.email, formData.password);
       }
@@ -373,164 +328,7 @@ function InputGroup({ label, placeholder, type = 'text', icon, value, onChange, 
 }
 
 
-function VerificationStep({ user, onSuccess, onCancel }: { user: any, onSuccess: () => void, onCancel: () => void }) {
-  const [code, setCode] = useState(['', '', '', '']);
-  const [error, setError] = useState('');
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [isResending, setIsResending] = useState(false);
 
-  const inputs = React.useRef<(HTMLInputElement | null)[]>([]);
-
-  const handleChange = (index: number, value: string) => {
-    if (value.length > 1) value = value.slice(-1);
-    if (!/^\d*$/.test(value)) return;
-
-    const newCode = [...code];
-    newCode[index] = value;
-    setCode(newCode);
-
-    if (value && index < 3) {
-      inputs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !code[index] && index > 0) {
-      inputs.current[index - 1]?.focus();
-    }
-  };
-
-  const handleVerify = async () => {
-    const fullCode = code.join('');
-    if (fullCode.length !== 4) {
-      setError('Veuillez entrer le code à 4 chiffres');
-      return;
-    }
-
-    setIsVerifying(true);
-    setError('');
-
-    try {
-      // 1. Get the real code from Firestore
-      const docRef = doc(db, 'verificationCodes', user.uid);
-      const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists()) {
-        throw new Error("Délai de vérification expiré ou session invalide.");
-      }
-
-      const storedData = docSnap.data();
-      
-      // 2. Compare
-      if (fullCode === storedData.code) {
-        // 3. Delete the code and proceed
-        await deleteDoc(docRef);
-        onSuccess();
-      } else {
-        throw new Error('Code incorrect. Veuillez vérifier vos emails.');
-      }
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
-  const handleResend = async () => {
-    setIsResending(true);
-    setError('');
-    try {
-      const newCode = Math.floor(1000 + Math.random() * 9000).toString();
-      await setDoc(doc(db, 'verificationCodes', user.uid), {
-        code: newCode,
-        userId: user.uid,
-        createdAt: Timestamp.now()
-      });
-      // In production, this would trigger an email
-      console.log("NOUVEAU CODE ENVOYÉ : ", newCode);
-      setError("Un nouveau code a été envoyé !");
-      setTimeout(() => setError(''), 3000);
-    } catch (err) {
-      setError("Erreur lors du renvoi.");
-    } finally {
-      setIsResending(false);
-    }
-  };
-
-  return (
-    <div className="max-w-md mx-auto py-10">
-      <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-2xl p-8 md:p-10 text-center">
-        <div className="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 border border-indigo-100 shadow-inner">
-          <Mail className="size-10" />
-        </div>
-
-        <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-4">Vérifiez vos emails</h2>
-        
-        <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 mb-8">
-          <p className="text-slate-600 text-sm font-medium leading-relaxed">
-            Entrez le <strong>code à 4 chiffres</strong> envoyé à l'adresse :<br/>
-            <span className="text-indigo-600 font-bold block mt-1">{user.email}</span>
-          </p>
-        </div>
-
-        <div className="flex justify-center gap-4 mb-8">
-          {code.map((digit, i) => (
-            <input
-              key={i}
-              ref={el => inputs.current[i] = el}
-              type="text"
-              inputMode="numeric"
-              value={digit}
-              onChange={e => handleChange(i, e.target.value)}
-              onKeyDown={e => handleKeyDown(i, e)}
-              className="size-16 bg-slate-50 border-2 border-slate-200 rounded-2xl text-center text-2xl font-black text-slate-800 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none"
-            />
-          ))}
-        </div>
-
-        {error && (
-          <div className={cn(
-            "p-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 mb-6",
-            error.includes("envoyé") ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-rose-50 text-rose-600 border border-rose-100"
-          )}>
-            <AlertCircle className="size-4" />
-            {error}
-          </div>
-        )}
-
-        <div className="space-y-4">
-          <button 
-            onClick={handleVerify}
-            disabled={isVerifying}
-            className="w-full h-14 bg-indigo-600 text-white rounded-2xl text-base font-black uppercase tracking-widest shadow-xl shadow-indigo-100 hover:bg-indigo-700 active:scale-[0.98] transition-all flex items-center justify-center gap-3"
-          >
-            {isVerifying ? (
-              <div className="size-6 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
-            ) : 'Vérifier mon compte'}
-          </button>
-          
-          <div className="flex flex-col gap-3">
-            <button 
-              onClick={handleResend}
-              disabled={isResending}
-              className="text-indigo-600 font-bold text-sm hover:underline disabled:text-slate-400 flex items-center justify-center gap-2"
-            >
-              <RotateCcw className={cn("size-4", isResending && "animate-spin")} />
-              {isResending ? 'Envoi...' : 'Renvoyer le code par email'}
-            </button>
-
-            <button 
-              onClick={onCancel}
-              className="text-slate-400 font-bold text-xs hover:text-rose-500 transition-colors uppercase tracking-widest mt-4"
-            >
-              Annuler et retourner
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function UserProfileView({ user, onLogout }: { user: any, onLogout: () => void }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -560,7 +358,7 @@ function UserProfileView({ user, onLogout }: { user: any, onLogout: () => void }
             
             <div className="flex-1 pb-4">
               <div className="flex items-center gap-2 text-indigo-600 font-black text-xs uppercase tracking-widest mb-1">
-                <ShieldCheck className="size-4" /> Compte Vérifié
+                <CheckCircle2 className="size-4" /> Compte Actif
               </div>
               <h1 className="text-4xl font-black text-slate-800 tracking-tight">
                 {user.profile.firstName} {user.profile.lastName}

@@ -8,10 +8,11 @@ import {
   Info
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Layout } from '@/src/components/Layout';
-import { useAccounting } from '@/src/services/store';
-import { formatCurrency, cn } from '@/src/lib/utils';
-import { PeriodSelector } from '@/src/components/PeriodSelector';
+import { Layout } from '../components/Layout';
+import { useAccounting } from '../services/store';
+import { formatCurrency, cn } from '../lib/utils';
+import { PeriodSelector } from '../components/PeriodSelector';
+import Dashboard from '../pages/Dashboard';
 
 export default function IncomeStatement() {
   const { stats, filteredTransactions: transactions } = useAccounting();
@@ -30,7 +31,7 @@ export default function IncomeStatement() {
     return total;
   };
 
-  // Simplified SIG calculation for demo
+  // Simplified SIG calculation
   const production = transactions.reduce((acc, tx) => {
       return acc + tx.lines.reduce((sum, l) => sum + (l.accountCode.startsWith('70') || l.accountCode.startsWith('71') ? l.credit - l.debit : 0), 0);
   }, 0);
@@ -61,8 +62,6 @@ export default function IncomeStatement() {
           if (!detailsMap[key]) {
             detailsMap[key] = { label: line.accountLabel, amount: 0 };
           }
-          // For income statement: products are credit - debit, charges are debit - credit
-          // But to show them nicely, we use the logic consistent with the SIG calculation
           const isIncome = line.accountCode.startsWith('7');
           const value = isIncome ? (line.credit - line.debit) : (line.debit - line.credit);
           detailsMap[key].amount += value;

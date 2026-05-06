@@ -174,7 +174,7 @@ export function AccountingProvider({ children }: { children: ReactNode }) {
                 email: firebaseUser.email || '',
                 establishment: '',
                 parcours: '',
-                verified: false,
+                verified: true,
                 photoURL: firebaseUser.photoURL || undefined
               }
             });
@@ -240,7 +240,7 @@ export function AccountingProvider({ children }: { children: ReactNode }) {
         const data = backupDoc.data();
         const restoredTxs = data.transactions || [];
         setTransactions(restoredTxs);
-        localStorage.setItem(`comptazen_txs_${user.uid}`, JSON.stringify(restoredTxs));
+        localStorage.setItem(`zaina_txs_${user.uid}`, JSON.stringify(restoredTxs));
         return true;
       }
       return false;

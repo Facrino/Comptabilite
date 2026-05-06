@@ -20,7 +20,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user || !user.profile.verified) {
+  if (!user) {
     return <Navigate to="/profile" replace />;
   }
 

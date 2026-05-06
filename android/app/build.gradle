@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace 'com.comptazen'
+    namespace 'com.zaina.compta'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.comptazen"
+        applicationId "com.zaina.compta"
         minSdk 24
         targetSdk 34
         versionCode 1

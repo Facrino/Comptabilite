@@ -1,4 +1,4 @@
-package com.comptazen.models;
+package com.zaina.compta.models;
 
 public class JournalLine {
     private String accountCode;
