@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#2196F3</color>
+    <color name="primary_dark">#1976D2</color>
+    <color name="accent">#FF4081</color>
+    <color name="white">#FFFFFF</color>
+    <color name="background">#F5F7FA</color>
+    <color name="text_main">#2D3748</color>
+    <color name="text_muted">#718096</color>
+    <color name="emerald">#10B981</color>
+    <color name="rose">#F43F5E</color>
+    <color name="sidebar">#FFFFFF</color>
+    <color name="sidebar_foreground">#4A5568</color>
+</resources>
