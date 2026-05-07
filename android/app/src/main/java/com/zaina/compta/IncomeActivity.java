@@ -32,6 +32,12 @@ public class IncomeActivity extends AppCompatActivity {
         loadData();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadData();
+    }
+
     private void setupAccordion() {
         setupToggle(R.id.layout_production_header, R.id.layout_production_details, R.id.iv_prod_arrow);
         setupToggle(R.id.layout_consommation_header, R.id.layout_consommation_details, R.id.iv_cons_arrow);
@@ -43,20 +49,23 @@ public class IncomeActivity extends AppCompatActivity {
         setupToggle(R.id.layout_exceptional_header, R.id.layout_exceptional_details, R.id.iv_exceptional_arrow);
     }
 
-    // ... (rest of setup methods remain the same) ...
-
     private void setupToggle(int headerId, final int detailsId, final int arrowId) {
-        findViewById(headerId).setOnClickListener(new View.OnClickListener() {
+        View header = findViewById(headerId);
+        if (header == null) return;
+        
+        header.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 View details = findViewById(detailsId);
                 View arrow = findViewById(arrowId);
-                if (details.getVisibility() == View.VISIBLE) {
-                    details.setVisibility(View.GONE);
-                    if (arrow != null) arrow.setRotation(0);
-                } else {
-                    details.setVisibility(View.VISIBLE);
-                    if (arrow != null) arrow.setRotation(180);
+                if (details != null) {
+                    if (details.getVisibility() == View.VISIBLE) {
+                        details.setVisibility(View.GONE);
+                        if (arrow != null) arrow.setRotation(0);
+                    } else {
+                        details.setVisibility(View.VISIBLE);
+                        if (arrow != null) arrow.setRotation(180);
+                    }
                 }
             }
         });
@@ -69,22 +78,39 @@ public class IncomeActivity extends AppCompatActivity {
         double va = production - consommation;
         double personnel = ds.getPersonnelCosts();
         double ebe = va - personnel;
+        double operatingExp = ds.getOperatingExpenses();
+        double rex = ebe - operatingExp;
+        double finRes = ds.getFinancialResult();
+        double rcai = rex + finRes;
+        double exceptional = ds.getExceptionalResult();
+        double net = ds.getNetResult();
         
-        TextView tvVA = findViewById(R.id.tv_val_va);
-        TextView tvNet = findViewById(R.id.tv_val_net);
+        updateText(R.id.tv_val_production_total, String.format("%.0f Ar", production));
+        updateText(R.id.tv_val_consommation_total, String.format("-%.0f Ar", consommation));
         
-        tvVA.setText(String.format("%.0f Ar", va));
-        ((TextView)findViewById(R.id.tv_val_va_prod)).setText(String.format("%.0f Ar", production));
-        ((TextView)findViewById(R.id.tv_val_va_cons)).setText(String.format("-%.0f Ar", consommation));
+        updateText(R.id.tv_val_va, String.format("%.0f Ar", va));
+        updateText(R.id.tv_val_va_prod, String.format("%.0f Ar", production));
+        updateText(R.id.tv_val_va_cons, String.format("-%.0f Ar", consommation));
         
-        tvNet.setText(String.format("%.0f Ar", ebe)); // Simplified net for now
+        updateText(R.id.tv_val_ebe, String.format("%.0f Ar", ebe));
+        updateText(R.id.tv_val_ebe_va, String.format("%.0f Ar", va));
+        updateText(R.id.tv_val_ebe_staff, String.format("-%.0f Ar", personnel));
+        updateText(R.id.tv_val_staff, String.format("-%.0f Ar", personnel));
         
-        ((TextView)findViewById(R.id.tv_val_production_total)).setText(String.format("%.0f Ar", production));
-        ((TextView)findViewById(R.id.tv_val_consommation_total)).setText(String.format("-%.0f Ar", consommation));
-        ((TextView)findViewById(R.id.tv_val_staff)).setText(String.format("-%.0f Ar", personnel));
+        updateText(R.id.tv_val_operating_total, String.format("%.0f Ar", rex));
+        updateText(R.id.tv_val_financial_total, String.format("%.0f Ar", finRes));
+        updateText(R.id.tv_val_before_tax, String.format("%.0f Ar", rcai));
+        updateText(R.id.tv_val_bt_operating, String.format("%.0f Ar", rex));
+        updateText(R.id.tv_val_bt_financial, String.format("%.0f Ar", finRes));
         
-        ((TextView)findViewById(R.id.tv_val_ebe)).setText(String.format("%.0f Ar", ebe));
-        ((TextView)findViewById(R.id.tv_val_ebe_va)).setText(String.format("%.0f Ar", va));
-        ((TextView)findViewById(R.id.tv_val_ebe_staff)).setText(String.format("-%.0f Ar", personnel));
+        updateText(R.id.tv_val_exceptional_total, String.format("%.0f Ar", exceptional));
+        updateText(R.id.tv_val_net, String.format("%.0f Ar", net));
+    }
+
+    private void updateText(int id, String text) {
+        TextView tv = findViewById(id);
+        if (tv != null) {
+            tv.setText(text);
+        }
     }
 }

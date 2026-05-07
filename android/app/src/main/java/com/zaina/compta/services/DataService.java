@@ -66,9 +66,8 @@ public class DataService {
         double total = 0;
         for (Transaction tx : transactions) {
             for (JournalLine line : tx.getLines()) {
-                if (line.getAccountCode().startsWith("70") || 
-                    line.getAccountCode().startsWith("71") || 
-                    line.getAccountCode().startsWith("72")) {
+                String code = line.getAccountCode();
+                if (code.startsWith("70") || code.startsWith("71") || code.startsWith("72")) {
                     total += line.getCredit() - line.getDebit();
                 }
             }
@@ -80,9 +79,8 @@ public class DataService {
         double total = 0;
         for (Transaction tx : transactions) {
             for (JournalLine line : tx.getLines()) {
-                if (line.getAccountCode().startsWith("60") || 
-                    line.getAccountCode().startsWith("61") || 
-                    line.getAccountCode().startsWith("62")) {
+                String code = line.getAccountCode();
+                if (code.startsWith("60") || code.startsWith("61") || code.startsWith("62")) {
                     total += line.getDebit() - line.getCredit();
                 }
             }
@@ -102,14 +100,12 @@ public class DataService {
         return total;
     }
 
-    public double getAssetTotal() {
+    public double getOperatingExpenses() {
         double total = 0;
         for (Transaction tx : transactions) {
             for (JournalLine line : tx.getLines()) {
-                // Simplified asset logic: accounts starting with 2, 3, 5
-                if (line.getAccountCode().startsWith("2") || 
-                    line.getAccountCode().startsWith("3") || 
-                    line.getAccountCode().startsWith("5")) {
+                String code = line.getAccountCode();
+                if (code.startsWith("63") || code.startsWith("68") || code.startsWith("65")) {
                     total += line.getDebit() - line.getCredit();
                 }
             }
@@ -117,13 +113,105 @@ public class DataService {
         return total;
     }
 
-    public double getLiabilityTotal() {
+    public double getFinancialResult() {
         double total = 0;
         for (Transaction tx : transactions) {
             for (JournalLine line : tx.getLines()) {
-                // Simplified liability logic: accounts starting with 1, 4
-                if (line.getAccountCode().startsWith("1") || 
-                    line.getAccountCode().startsWith("4")) {
+                String code = line.getAccountCode();
+                if (code.startsWith("76")) {
+                    total += line.getCredit() - line.getDebit();
+                } else if (code.startsWith("66")) {
+                    total -= line.getDebit() - line.getCredit();
+                }
+            }
+        }
+        return total;
+    }
+
+    public double getExceptionalResult() {
+        double total = 0;
+        for (Transaction tx : transactions) {
+            for (JournalLine line : tx.getLines()) {
+                String code = line.getAccountCode();
+                if (code.startsWith("77")) {
+                    total += line.getCredit() - line.getDebit();
+                } else if (code.startsWith("67")) {
+                    total -= line.getDebit() - line.getCredit();
+                }
+            }
+        }
+        return total;
+    }
+
+    public double getNetResult() {
+        return getProduction() - getConsommation() - getPersonnelCosts() - getOperatingExpenses() + getFinancialResult() + getExceptionalResult();
+    }
+
+    public double getImmobilisatons() {
+        double total = 0;
+        for (Transaction tx : transactions) {
+            for (JournalLine line : tx.getLines()) {
+                if (line.getAccountCode().startsWith("2")) {
+                    total += line.getDebit() - line.getCredit();
+                }
+            }
+        }
+        return total;
+    }
+
+    public double getStocks() {
+        double total = 0;
+        for (Transaction tx : transactions) {
+            for (JournalLine line : tx.getLines()) {
+                if (line.getAccountCode().startsWith("3")) {
+                    total += line.getDebit() - line.getCredit();
+                }
+            }
+        }
+        return total;
+    }
+
+    public double getDisponibilites() {
+        double total = 0;
+        for (Transaction tx : transactions) {
+            for (JournalLine line : tx.getLines()) {
+                if (line.getAccountCode().startsWith("5")) {
+                    total += line.getDebit() - line.getCredit();
+                }
+            }
+        }
+        return total;
+    }
+
+    public double getCapitauxPropres() {
+        double total = 0;
+        for (Transaction tx : transactions) {
+            for (JournalLine line : tx.getLines()) {
+                if (line.getAccountCode().startsWith("10") || line.getAccountCode().startsWith("11") || line.getAccountCode().startsWith("12")) {
+                    total += line.getCredit() - line.getDebit();
+                }
+            }
+        }
+        return total;
+    }
+
+    public double getDettesLT() {
+        double total = 0;
+        for (Transaction tx : transactions) {
+            for (JournalLine line : tx.getLines()) {
+                if (line.getAccountCode().startsWith("16")) {
+                    total += line.getCredit() - line.getDebit();
+                }
+            }
+        }
+        return total;
+    }
+
+    public double getDettesCT() {
+        double total = 0;
+        for (Transaction tx : transactions) {
+            for (JournalLine line : tx.getLines()) {
+                if (line.getAccountCode().startsWith("4")) {
                     total += line.getCredit() - line.getDebit();
                 }
             }
