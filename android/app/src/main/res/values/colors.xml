@@ -11,4 +11,5 @@
     <color name="rose">#F43F5E</color>
     <color name="sidebar">#FFFFFF</color>
     <color name="sidebar_foreground">#4A5568</color>
+    <color name="border">#E2E8F0</color>
 </resources>
