@@ -8,17 +8,21 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.core.view.GravityCompat;
 import com.zaina.compta.models.Transaction;
+import com.zaina.compta.services.DataService;
+import com.zaina.compta.adapters.RecentTransactionsAdapter;
 import com.google.android.material.navigation.NavigationView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.content.Intent;
 import android.view.MenuItem;
-import java.util.ArrayList;
 import java.util.List;
 
 public class DashboardActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     
-    private List<Transaction> transactions = new ArrayList<>();
     private TextView tvIncome, tvExpenses, tvResult;
     private DrawerLayout drawerLayout;
+    private RecyclerView rvTransactions;
+    private RecentTransactionsAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,8 +44,31 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
         tvIncome = findViewById(R.id.tv_income);
         tvExpenses = findViewById(R.id.tv_expenses);
         tvResult = findViewById(R.id.tv_result);
+        rvTransactions = findViewById(R.id.rv_recent_transactions);
 
-        updateStats();
+        rvTransactions.setLayoutManager(new LinearLayoutManager(this));
+        
+        updateUI();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateUI();
+    }
+
+    private void updateUI() {
+        DataService ds = DataService.getInstance();
+        double totalIncome = ds.getTotalIncome();
+        double totalExpenses = ds.getTotalExpenses();
+
+        tvIncome.setText(String.format("%.0f Ar", totalIncome));
+        tvExpenses.setText(String.format("%.0f Ar", totalExpenses));
+        tvResult.setText(String.format("%.0f Ar", totalIncome - totalExpenses));
+
+        List<Transaction> transactions = ds.getTransactions();
+        adapter = new RecentTransactionsAdapter(transactions);
+        rvTransactions.setAdapter(adapter);
     }
 
     @Override
@@ -60,19 +87,5 @@ public class DashboardActivity extends AppCompatActivity implements NavigationVi
 
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
-    }
-
-    private void updateStats() {
-        double totalIncome = 0;
-        double totalExpenses = 0;
-
-        for (Transaction tx : transactions) {
-            // Logique de calcul similaire au web
-            totalIncome += tx.getTotalAmount();
-        }
-
-        tvIncome.setText(String.format("%.0f Ar", totalIncome));
-        tvExpenses.setText(String.format("%.0f Ar", totalExpenses));
-        tvResult.setText(String.format("%.0f Ar", totalIncome - totalExpenses));
     }
 }

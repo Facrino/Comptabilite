@@ -50,6 +50,13 @@
                     android:padding="12dp"
                     android:textSize="14sp"/>
 
+                <LinearLayout
+                    android:id="@+id/layout_lines"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="12dp" />
+
                 <Button
                     android:id="@+id/btn_add_line"
                     android:layout_width="match_parent"

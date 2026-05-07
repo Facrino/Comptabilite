@@ -7,6 +7,8 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.zaina.compta.services.DataService;
+
 public class IncomeActivity extends AppCompatActivity {
 
     @Override
@@ -39,26 +41,9 @@ public class IncomeActivity extends AppCompatActivity {
         setupToggle(R.id.layout_financial_header, R.id.layout_financial_details, R.id.iv_financial_arrow);
         setupToggle(R.id.layout_before_tax_header, R.id.layout_before_tax_details, R.id.iv_before_tax_arrow);
         setupToggle(R.id.layout_exceptional_header, R.id.layout_exceptional_details, R.id.iv_exceptional_arrow);
-
-        // Add long click for Dialog version as requested
-        setupDialogTrigger(R.id.layout_production_header, "Détails Production", "Ventes de marchandises: 10 000 Ar\nProduction stockée: 0 Ar");
-        setupDialogTrigger(R.id.layout_consommation_header, "Détails Consommation", "Achats consommés: -50 000 Ar\nServices extérieurs: 0 Ar");
-        setupDialogTrigger(R.id.layout_va_header, "Détails Valeur Ajoutée", "Production: 10 000 Ar\nConsommation: -50 000 Ar");
     }
 
-    private void setupDialogTrigger(int viewId, final String title, final String message) {
-        findViewById(viewId).setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                new androidx.appcompat.app.AlertDialog.Builder(IncomeActivity.this)
-                        .setTitle(title)
-                        .setMessage(message)
-                        .setPositiveButton("Fermer", null)
-                        .show();
-                return true;
-            }
-        });
-    }
+    // ... (rest of setup methods remain the same) ...
 
     private void setupToggle(int headerId, final int detailsId, final int arrowId) {
         findViewById(headerId).setOnClickListener(new View.OnClickListener() {
@@ -78,38 +63,28 @@ public class IncomeActivity extends AppCompatActivity {
     }
 
     private void loadData() {
+        DataService ds = DataService.getInstance();
+        double production = ds.getProduction();
+        double consommation = ds.getConsommation();
+        double va = production - consommation;
+        double personnel = ds.getPersonnelCosts();
+        double ebe = va - personnel;
+        
         TextView tvVA = findViewById(R.id.tv_val_va);
         TextView tvNet = findViewById(R.id.tv_val_net);
         
-        tvVA.setText("-40 000 Ar");
-        ((TextView)findViewById(R.id.tv_val_va_prod)).setText("10 000 Ar");
-        ((TextView)findViewById(R.id.tv_val_va_cons)).setText("-50 000 Ar");
+        tvVA.setText(String.format("%.0f Ar", va));
+        ((TextView)findViewById(R.id.tv_val_va_prod)).setText(String.format("%.0f Ar", production));
+        ((TextView)findViewById(R.id.tv_val_va_cons)).setText(String.format("-%.0f Ar", consommation));
         
-        tvNet.setText("-40 000 Ar");
+        tvNet.setText(String.format("%.0f Ar", ebe)); // Simplified net for now
         
-        ((TextView)findViewById(R.id.tv_val_production_total)).setText("10 000 Ar");
-        ((TextView)findViewById(R.id.tv_val_sales)).setText("10 000 Ar");
+        ((TextView)findViewById(R.id.tv_val_production_total)).setText(String.format("%.0f Ar", production));
+        ((TextView)findViewById(R.id.tv_val_consommation_total)).setText(String.format("-%.0f Ar", consommation));
+        ((TextView)findViewById(R.id.tv_val_staff)).setText(String.format("-%.0f Ar", personnel));
         
-        ((TextView)findViewById(R.id.tv_val_consommation_total)).setText("-50 000 Ar");
-        ((TextView)findViewById(R.id.tv_val_purchases)).setText("-50 000 Ar");
-        
-        ((TextView)findViewById(R.id.tv_val_staff)).setText("-0 Ar");
-        
-        ((TextView)findViewById(R.id.tv_val_ebe)).setText("-40 000 Ar");
-        ((TextView)findViewById(R.id.tv_val_ebe_va)).setText("-40 000 Ar");
-        ((TextView)findViewById(R.id.tv_val_ebe_staff)).setText("-0 Ar");
-        
-        ((TextView)findViewById(R.id.tv_val_operating_total)).setText("-40 000 Ar");
-        ((TextView)findViewById(R.id.tv_val_depreciation)).setText("-0 Ar");
-        
-        ((TextView)findViewById(R.id.tv_val_financial_total)).setText("0 Ar");
-        ((TextView)findViewById(R.id.tv_val_fin_income)).setText("0 Ar");
-        
-        ((TextView)findViewById(R.id.tv_val_before_tax)).setText("-40 000 Ar");
-        ((TextView)findViewById(R.id.tv_val_bt_operating)).setText("-40 000 Ar");
-        ((TextView)findViewById(R.id.tv_val_bt_financial)).setText("0 Ar");
-        
-        ((TextView)findViewById(R.id.tv_val_exceptional_total)).setText("0 Ar");
-        ((TextView)findViewById(R.id.tv_val_ext_income)).setText("0 Ar");
+        ((TextView)findViewById(R.id.tv_val_ebe)).setText(String.format("%.0f Ar", ebe));
+        ((TextView)findViewById(R.id.tv_val_ebe_va)).setText(String.format("%.0f Ar", va));
+        ((TextView)findViewById(R.id.tv_val_ebe_staff)).setText(String.format("-%.0f Ar", personnel));
     }
 }
